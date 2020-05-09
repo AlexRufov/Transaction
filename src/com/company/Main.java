@@ -18,18 +18,38 @@ public class Main {
 		try(Connection connection = DriverManager.getConnection(connectionURL, name, password);
 		Statement statement = connection.createStatement()) {
 			statement.execute("drop table IF EXISTS books");
-			statement.executeUpdate("CREATE TABLE IF NOT EXISTS books (id MEDIUMINT NOT NULL AUTO_INCREMENT, name CHAR (30) NOT NULL, dt DATE, PRIMARY KEY (id))");
+			statement.executeUpdate("CREATE TABLE IF NOT EXISTS books (id MEDIUMINT NOT NULL AUTO_INCREMENT, name CHAR (30) NOT NULL, PRIMARY KEY (id))");
+			statement.executeUpdate("insert into books (name) values ('Dark Tower')");
+			statement.executeUpdate("insert into books (name) values ('Lord of the rings')");
 
-//			PreparedStatement preparedStatement = connection.prepareStatement("insert into books (name, dt) VALUES ('today', ?)");
-//			preparedStatement.setDate(1, new Date(1589020109190l));
-//			preparedStatement.execute();
-//			System.out.println(preparedStatement);
+			CallableStatement callableStatement = connection.prepareCall("{call BooksCount(?)}");
+			callableStatement.registerOutParameter(1, Types.INTEGER);
+			callableStatement.execute();
+			System.out.println(callableStatement.getInt(1));
+			System.out.println("________________");
 
-			statement.executeUpdate("insert into books (name, dt) VALUES ('today', '2020-05-09')");
-			ResultSet resultSet = statement.executeQuery("select * from books");
-			while (resultSet.next()){
-				System.out.println(resultSet.getDate("dt"));
+			CallableStatement callableStatement1 = connection.prepareCall("{call getBooks(?)}");
+			callableStatement1.setInt(1, 1);
+			if (callableStatement1.execute()){
+				ResultSet resultSet = callableStatement1.getResultSet();
+				while (resultSet.next()){
+					System.out.println(resultSet.getInt("id"));
+					System.out.println(resultSet.getString("name"));
+				}
 			}
+
+			System.out.println("_______________________");
+
+			CallableStatement callableStatement2 = connection.prepareCall("{call getCount()}");
+			boolean hasResult = callableStatement2.execute();
+			while (hasResult){
+				ResultSet resultSet = callableStatement2.getResultSet();
+				while (resultSet.next()){
+					System.out.println(resultSet.getInt(1));
+				}
+				hasResult = callableStatement2.getMoreResults();
+			}
+
    		 }
     }
 }
