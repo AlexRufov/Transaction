@@ -18,31 +18,18 @@ public class Main {
 		try(Connection connection = DriverManager.getConnection(connectionURL, name, password);
 		Statement statement = connection.createStatement()) {
 			statement.execute("drop table IF EXISTS books");
-			statement.executeUpdate("CREATE TABLE IF NOT EXISTS books (id MEDIUMINT NOT NULL AUTO_INCREMENT, name CHAR (30) NOT NULL, img LONGBLOB, PRIMARY KEY (id))");
+			statement.executeUpdate("CREATE TABLE IF NOT EXISTS books (id MEDIUMINT NOT NULL AUTO_INCREMENT, name CHAR (30) NOT NULL, dt DATE, PRIMARY KEY (id))");
 
-			BufferedImage image = ImageIO.read(new File("Space.jpg"));
-			Blob blob = connection.createBlob();
-			OutputStream outputStream = blob.setBinaryStream(1);
-			ImageIO.write(image, "jpg", outputStream);
-			outputStream.close();
+//			PreparedStatement preparedStatement = connection.prepareStatement("insert into books (name, dt) VALUES ('today', ?)");
+//			preparedStatement.setDate(1, new Date(1589020109190l));
+//			preparedStatement.execute();
+//			System.out.println(preparedStatement);
 
-
-
-			PreparedStatement preparedStatement = connection.prepareStatement("insert into books (name, img) values (?,?)");
-			preparedStatement.setString(1, "Space");
-			preparedStatement.setBlob(2, blob);
-			preparedStatement.execute();
-			preparedStatement.close();
-
+			statement.executeUpdate("insert into books (name, dt) VALUES ('today', '2020-05-09')");
 			ResultSet resultSet = statement.executeQuery("select * from books");
 			while (resultSet.next()){
-				Blob blob1 = resultSet.getBlob("img");
-				BufferedImage image1 = ImageIO.read(blob1.getBinaryStream());
-				File outPutFile = new File("saved.png");
-				ImageIO.write(image1, "png", outPutFile);
+				System.out.println(resultSet.getDate("dt"));
 			}
-			resultSet.close();
-
    		 }
     }
 }
